@@ -9,7 +9,7 @@ logging.basicConfig(filename='log.log', level=logging.DEBUG)
 
 # noinspection SpellCheckingInspection
 def main():
-    directory = '//10.68.25.4/Project/UCPqwe/Reports/Daily reports'
+    directory = '//10.68.25.4/Project/UCP/Reports/Daily reports'
     os.chdir(directory)
     print(os.getcwd())
 
