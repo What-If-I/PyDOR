@@ -375,6 +375,7 @@ def main():
                                       }
 
     # Заполняем DOR Invitro-Expert
+    # TODO: AHT, ATT, ACW считается из отдельного отчёта. Он в папке Invitro под названием Invitro_Calls(Cities)
 
     invitro_expert_dor_sheet.cell(column=cur_day_column_index, row=5).value = invitro_epxert_calls_statistic["AHT"]
     invitro_expert_dor_sheet.cell(column=cur_day_column_index, row=6).value = invitro_epxert_calls_statistic["ATT"]
