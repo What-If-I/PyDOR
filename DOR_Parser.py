@@ -17,7 +17,7 @@ def main():
     # Сегодняшний день и месяц
     today = datetime.date.today()
     current_month = "{:%B}".format(today)
-    yesterday = today.day + 2
+    yesterday = today.day - 1
 
     # отркываем файл DOR
     dor = openpyxl.load_workbook("DOR_test.xlsx")
