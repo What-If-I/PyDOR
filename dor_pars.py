@@ -13,6 +13,8 @@ def search_in_column(sheet, value, in_row, start, end):
     """
     for column in range(start, end + 1):
         active_column = sheet.cell(row=in_row, column=column)
+        if active_column.value is None:
+            continue
         if active_column.value == value:
             return active_column
     return False

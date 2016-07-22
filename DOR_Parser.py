@@ -10,19 +10,20 @@ logging.basicConfig(filename='log.log', level=logging.DEBUG)
 # noinspection SpellCheckingInspection
 def main():
     directory = '//10.68.25.4/Project/UCP/Reports/Daily reports'
+    # directory = './Daily reports'
     os.chdir(directory)
     print(os.getcwd())
 
     # Сегодняшний день и месяц
     today = datetime.date.today()
     current_month = "{:%B}".format(today)
-    yesterday = today.day - 1
+    yesterday = today.day + 2
 
     # отркываем файл DOR
     dor = openpyxl.load_workbook("DOR_test.xlsx")
 
     # Список всех файлов в директории
-    reports = [(a, b) for a, b in reports_name_and_path(exclude_folder="_old")]
+    reports = [(name, path) for name, path in reports_name_and_path(exclude_folder="_old")]
 
     # ================ Начало АА и АА Сервис =============================
 
@@ -81,68 +82,71 @@ def main():
     curr_month_column_index = column_index_from_string(curr_month_cell.column)
     curr_day_cell = search_in_column(bsc_dor_sheet, yesterday, 2,
                                      start=curr_month_column_index, end=bsc_dor_sheet.max_column)
-    cur_day_column_index = column_index_from_string(curr_day_cell.column)
 
-    # находим файл с отчётами
-    bsc_calls_reports = find_report(reports, "BSC_")
-    bsc_status_reports = find_report(reports, "BSC-Status_")
+    if curr_day_cell is not False:
 
-    # открываем отчёт BSC
-    bsc_report_wb = openpyxl.load_workbook(bsc_calls_reports)
-    bsc_report_sheet = bsc_report_wb.active
-    bsc_statistic = {"entered": bsc_report_sheet['D9'].value,
-                     "answered": bsc_report_sheet['E9'].value,
-                     "answered<sl": bsc_report_sheet['G9'].value,
-                     "abandoned": bsc_report_sheet['F9'].value,
-                     "ghost_calls": bsc_report_sheet['J9'].value,
-                     "AHT": get_sec(bsc_report_sheet['P9'].value)
-                     }
+        cur_day_column_index = column_index_from_string(curr_day_cell.column)
 
-    # открываем отчёт Bosch-status и собираем статистику
-    bsc_status_report_wb = openpyxl.load_workbook(bsc_status_reports)
-    bsc_status_report_sheet = bsc_status_report_wb.active
+        # находим файл с отчётами
+        bsc_calls_reports = find_report(reports, "BSC_")
+        bsc_status_reports = find_report(reports, "BSC-Status_")
 
-    bsc_status_total_row = search_in_row(bsc_status_report_sheet, "Total:", 1,
-                                         start=1, end=bsc_status_report_sheet.max_row).row
+        # открываем отчёт BSC
+        bsc_report_wb = openpyxl.load_workbook(bsc_calls_reports)
+        bsc_report_sheet = bsc_report_wb.active
+        bsc_statistic = {"entered": bsc_report_sheet['D9'].value,
+                         "answered": bsc_report_sheet['E9'].value,
+                         "answered<sl": bsc_report_sheet['G9'].value,
+                         "abandoned": bsc_report_sheet['F9'].value,
+                         "ghost_calls": bsc_report_sheet['J9'].value,
+                         "AHT": get_sec(bsc_report_sheet['P9'].value)
+                         }
 
-    bsc_status_total_cell_coordinates = {"on_call": "E{}".format(bsc_status_total_row),
-                                         "after_call": "F{}".format(bsc_status_total_row),
-                                         "mail_flex": "H{}".format(bsc_status_total_row),
-                                         "back_office_work": "J{}".format(bsc_status_total_row),
-                                         "available": "D{}".format(bsc_status_total_row)
-                                         }
+        # открываем отчёт Bosch-status и собираем статистику
+        bsc_status_report_wb = openpyxl.load_workbook(bsc_status_reports)
+        bsc_status_report_sheet = bsc_status_report_wb.active
 
-    bsc_status_statistic = {"on_call": bsc_status_report_sheet
-    [bsc_status_total_cell_coordinates["on_call"]].value,
-                            "after_call": bsc_status_report_sheet
-                            [bsc_status_total_cell_coordinates["after_call"]].value,
-                            "mail_flex": bsc_status_report_sheet
-                            [bsc_status_total_cell_coordinates["mail_flex"]].value,
-                            "back_office_work": bsc_status_report_sheet
-                            [bsc_status_total_cell_coordinates["back_office_work"]].value,
-                            "available": bsc_status_report_sheet
-                            [bsc_status_total_cell_coordinates["available"]].value
-                            }
+        bsc_status_total_row = search_in_row(bsc_status_report_sheet, "Total:", 1,
+                                             start=1, end=bsc_status_report_sheet.max_row).row
 
-    # Заполняем DOR BSC
+        bsc_status_total_cell_coordinates = {"on_call": "E{}".format(bsc_status_total_row),
+                                             "after_call": "F{}".format(bsc_status_total_row),
+                                             "mail_flex": "H{}".format(bsc_status_total_row),
+                                             "back_office_work": "J{}".format(bsc_status_total_row),
+                                             "available": "D{}".format(bsc_status_total_row)
+                                             }
 
-    bsc_dor_sheet.cell(column=cur_day_column_index, row=5).value = bsc_statistic["AHT"]
-    bsc_dor_sheet.cell(column=cur_day_column_index, row=7).value = bsc_statistic["entered"]
-    bsc_dor_sheet.cell(column=cur_day_column_index, row=8).value = bsc_statistic["answered"]
-    bsc_dor_sheet.cell(column=cur_day_column_index, row=9).value = bsc_statistic["answered<sl"]
-    bsc_dor_sheet.cell(column=cur_day_column_index, row=10).value = bsc_statistic["abandoned"]
-    bsc_dor_sheet.cell(column=cur_day_column_index, row=11).value = bsc_statistic["ghost_calls"]
+        bsc_status_statistic = {"on_call": bsc_status_report_sheet
+        [bsc_status_total_cell_coordinates["on_call"]].value,
+                                "after_call": bsc_status_report_sheet
+                                [bsc_status_total_cell_coordinates["after_call"]].value,
+                                "mail_flex": bsc_status_report_sheet
+                                [bsc_status_total_cell_coordinates["mail_flex"]].value,
+                                "back_office_work": bsc_status_report_sheet
+                                [bsc_status_total_cell_coordinates["back_office_work"]].value,
+                                "available": bsc_status_report_sheet
+                                [bsc_status_total_cell_coordinates["available"]].value
+                                }
 
-    bsc_dor_sheet.cell(column=cur_day_column_index, row=12).value = \
-        (get_sec(bsc_status_statistic["on_call"]) +
-         get_sec(bsc_status_statistic["after_call"]) +
-         get_sec(bsc_status_statistic["mail_flex"]) +
-         get_sec(bsc_status_statistic["back_office_work"])) / \
-        (get_sec(bsc_status_statistic["on_call"]) +
-         get_sec(bsc_status_statistic["after_call"]) +
-         get_sec(bsc_status_statistic["mail_flex"]) +
-         get_sec(bsc_status_statistic["back_office_work"]) +
-         get_sec(bsc_status_statistic["available"]))
+        # Заполняем DOR BSC
+
+        bsc_dor_sheet.cell(column=cur_day_column_index, row=5).value = bsc_statistic["AHT"]
+        bsc_dor_sheet.cell(column=cur_day_column_index, row=7).value = bsc_statistic["entered"]
+        bsc_dor_sheet.cell(column=cur_day_column_index, row=8).value = bsc_statistic["answered"]
+        bsc_dor_sheet.cell(column=cur_day_column_index, row=9).value = bsc_statistic["answered<sl"]
+        bsc_dor_sheet.cell(column=cur_day_column_index, row=10).value = bsc_statistic["abandoned"]
+        bsc_dor_sheet.cell(column=cur_day_column_index, row=11).value = bsc_statistic["ghost_calls"]
+
+        bsc_dor_sheet.cell(column=cur_day_column_index, row=12).value = \
+            (get_sec(bsc_status_statistic["on_call"]) +
+             get_sec(bsc_status_statistic["after_call"]) +
+             get_sec(bsc_status_statistic["mail_flex"]) +
+             get_sec(bsc_status_statistic["back_office_work"])) / \
+            (get_sec(bsc_status_statistic["on_call"]) +
+             get_sec(bsc_status_statistic["after_call"]) +
+             get_sec(bsc_status_statistic["mail_flex"]) +
+             get_sec(bsc_status_statistic["back_office_work"]) +
+             get_sec(bsc_status_statistic["available"]))
 
     # ===================================================================================================
 
@@ -154,28 +158,31 @@ def main():
     curr_month_column_index = column_index_from_string(curr_month_cell.column)
     curr_day_cell = search_in_column(buderus_dor_sheet, yesterday, 2,
                                      start=curr_month_column_index, end=buderus_dor_sheet.max_column)
-    cur_day_column_index = column_index_from_string(curr_day_cell.column)
 
-    # находим файл с отчётами
-    buderus_reports = find_report(reports, "Buderus_")
+    if curr_day_cell is not False:
 
-    # открываем отчёт Buderus
-    buderus_report_wb = openpyxl.load_workbook(buderus_reports)
-    buderus_report_sheet = buderus_report_wb.active
-    buderus_statistic = {"entered": buderus_report_sheet['D9'].value,
-                         "answered": buderus_report_sheet['E9'].value,
-                         "answered<sl": buderus_report_sheet['G9'].value,
-                         "abandoned": buderus_report_sheet['F9'].value,
-                         "AHT": get_sec(buderus_report_sheet['P9'].value)
-                         }
+        cur_day_column_index = column_index_from_string(curr_day_cell.column)
 
-    # Заполняем DOR Buderus
+        # находим файл с отчётами
+        buderus_reports = find_report(reports, "Buderus_")
 
-    buderus_dor_sheet.cell(column=cur_day_column_index, row=5).value = buderus_statistic["AHT"]
-    buderus_dor_sheet.cell(column=cur_day_column_index, row=7).value = buderus_statistic["entered"]
-    buderus_dor_sheet.cell(column=cur_day_column_index, row=8).value = buderus_statistic["answered"]
-    buderus_dor_sheet.cell(column=cur_day_column_index, row=9).value = buderus_statistic["answered<sl"]
-    buderus_dor_sheet.cell(column=cur_day_column_index, row=10).value = buderus_statistic["abandoned"]
+        # открываем отчёт Buderus
+        buderus_report_wb = openpyxl.load_workbook(buderus_reports)
+        buderus_report_sheet = buderus_report_wb.active
+        buderus_statistic = {"entered": buderus_report_sheet['D9'].value,
+                             "answered": buderus_report_sheet['E9'].value,
+                             "answered<sl": buderus_report_sheet['G9'].value,
+                             "abandoned": buderus_report_sheet['F9'].value,
+                             "AHT": get_sec(buderus_report_sheet['P9'].value)
+                             }
+
+        # Заполняем DOR Buderus
+
+        buderus_dor_sheet.cell(column=cur_day_column_index, row=5).value = buderus_statistic["AHT"]
+        buderus_dor_sheet.cell(column=cur_day_column_index, row=7).value = buderus_statistic["entered"]
+        buderus_dor_sheet.cell(column=cur_day_column_index, row=8).value = buderus_statistic["answered"]
+        buderus_dor_sheet.cell(column=cur_day_column_index, row=9).value = buderus_statistic["answered<sl"]
+        buderus_dor_sheet.cell(column=cur_day_column_index, row=10).value = buderus_statistic["abandoned"]
 
     # ================================================================================================
 
@@ -188,28 +195,31 @@ def main():
     curr_month_column_index = column_index_from_string(curr_month_cell.column)
     curr_day_cell = search_in_column(buderus_sales_dor_sheet, yesterday, 2,
                                      start=curr_month_column_index, end=buderus_sales_dor_sheet.max_column)
-    cur_day_column_index = column_index_from_string(curr_day_cell.column)
 
-    # находим файл с отчётами
-    buderus_sales_reports = find_report(reports, "Buderus-Sale_")
+    if curr_day_cell is not False:
 
-    # открываем отчёт Buderus-Sales
-    buderus_sales_report_wb = openpyxl.load_workbook(buderus_sales_reports)
-    buderus_sales_report_sheet = buderus_sales_report_wb.active
-    buderus_sales_statistic = {"entered": buderus_sales_report_sheet['D9'].value,
-                               "answered": buderus_sales_report_sheet['E9'].value,
-                               "answered<sl": buderus_sales_report_sheet['G9'].value,
-                               "abandoned": buderus_sales_report_sheet['F9'].value,
-                               "AHT": get_sec(buderus_sales_report_sheet['P9'].value)
-                               }
+        cur_day_column_index = column_index_from_string(curr_day_cell.column)
 
-    # Заполняем DOR Buderus-Sales
+        # находим файл с отчётами
+        buderus_sales_reports = find_report(reports, "Buderus-Sale_")
 
-    buderus_sales_dor_sheet.cell(column=cur_day_column_index, row=5).value = buderus_sales_statistic["AHT"]
-    buderus_sales_dor_sheet.cell(column=cur_day_column_index, row=7).value = buderus_sales_statistic["entered"]
-    buderus_sales_dor_sheet.cell(column=cur_day_column_index, row=8).value = buderus_sales_statistic["answered"]
-    buderus_sales_dor_sheet.cell(column=cur_day_column_index, row=9).value = buderus_sales_statistic["answered<sl"]
-    buderus_sales_dor_sheet.cell(column=cur_day_column_index, row=10).value = buderus_sales_statistic["abandoned"]
+        # открываем отчёт Buderus-Sales
+        buderus_sales_report_wb = openpyxl.load_workbook(buderus_sales_reports)
+        buderus_sales_report_sheet = buderus_sales_report_wb.active
+        buderus_sales_statistic = {"entered": buderus_sales_report_sheet['D9'].value,
+                                   "answered": buderus_sales_report_sheet['E9'].value,
+                                   "answered<sl": buderus_sales_report_sheet['G9'].value,
+                                   "abandoned": buderus_sales_report_sheet['F9'].value,
+                                   "AHT": get_sec(buderus_sales_report_sheet['P9'].value)
+                                   }
+
+        # Заполняем DOR Buderus-Sales
+
+        buderus_sales_dor_sheet.cell(column=cur_day_column_index, row=5).value = buderus_sales_statistic["AHT"]
+        buderus_sales_dor_sheet.cell(column=cur_day_column_index, row=7).value = buderus_sales_statistic["entered"]
+        buderus_sales_dor_sheet.cell(column=cur_day_column_index, row=8).value = buderus_sales_statistic["answered"]
+        buderus_sales_dor_sheet.cell(column=cur_day_column_index, row=9).value = buderus_sales_statistic["answered<sl"]
+        buderus_sales_dor_sheet.cell(column=cur_day_column_index, row=10).value = buderus_sales_statistic["abandoned"]
 
     # ================================================================================================
 
@@ -529,22 +539,25 @@ def main():
     curr_month_column_index = column_index_from_string(curr_month_cell.column)
     curr_day_cell = search_in_column(kaspersky_b2b_dor_sheet, yesterday, 2,
                                      start=curr_month_column_index, end=kaspersky_b2b_dor_sheet.max_column)
-    cur_day_column_index = column_index_from_string(curr_day_cell.column)
 
-    # находим файл с отчётами
-    kaspersky_b2b_calls_reports = find_report(reports, "Kaspersky-B2B_")
+    if curr_day_cell is not False:
 
-    # открываем отчёт Kaspersky-B2B-calls и собираем статистику
-    kaspersky_b2b_calls_report_wb = openpyxl.load_workbook(kaspersky_b2b_calls_reports)
-    kaspersky_b2b_calls_report_sheet = kaspersky_b2b_calls_report_wb.active
-    kaspersky_b2b_calls_statistic = {"AHT": get_sec(kaspersky_b2b_calls_report_sheet['P9'].value),
-                                     "ATT": get_sec(kaspersky_b2b_calls_report_sheet['Q9'].value),
-                                     "ACW": get_sec(kaspersky_b2b_calls_report_sheet['S9'].value),
-                                     }
+        cur_day_column_index = column_index_from_string(curr_day_cell.column)
 
-    # Заполняем DOR Kaspersky-B2B
+        # находим файл с отчётами
+        kaspersky_b2b_calls_reports = find_report(reports, "Kaspersky-B2B_")
 
-    kaspersky_b2b_dor_sheet.cell(column=cur_day_column_index, row=5).value = kaspersky_b2b_calls_statistic["AHT"]
+        # открываем отчёт Kaspersky-B2B-calls и собираем статистику
+        kaspersky_b2b_calls_report_wb = openpyxl.load_workbook(kaspersky_b2b_calls_reports)
+        kaspersky_b2b_calls_report_sheet = kaspersky_b2b_calls_report_wb.active
+        kaspersky_b2b_calls_statistic = {"AHT": get_sec(kaspersky_b2b_calls_report_sheet['P9'].value),
+                                         "ATT": get_sec(kaspersky_b2b_calls_report_sheet['Q9'].value),
+                                         "ACW": get_sec(kaspersky_b2b_calls_report_sheet['S9'].value),
+                                         }
+
+        # Заполняем DOR Kaspersky-B2B
+
+        kaspersky_b2b_dor_sheet.cell(column=cur_day_column_index, row=5).value = kaspersky_b2b_calls_statistic["AHT"]
 
     # ================================================================================================
 
@@ -579,6 +592,7 @@ def main():
     dor.save("DOR_test_new.xlsx")
     print("%s - Done!" % datetime.datetime.today())
 
+# main()
 
 if __name__ == '__main__':
     try:
