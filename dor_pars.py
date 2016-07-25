@@ -1,4 +1,6 @@
 import os
+import datetime
+from openpyxl.cell import get_column_letter, column_index_from_string
 
 
 def search_in_column(sheet, value, in_row, start, end):
@@ -53,6 +55,21 @@ def find_report(reports, beginning):
     return None
 
 
+def get_dor_sheet_and_day_column(dor, sheet, date, next_month_from=31):
+    day = date.day
+    if day < next_month_from:
+        month = "{:%B}".format(date)
+    else:
+        next_month = date + datetime.timedelta(15)
+        month = "{:%B}".format(next_month)
+    dor_sheet = dor.get_sheet_by_name(sheet)
+    month_cell = search_in_column(dor_sheet, month, 1, start=1, end=dor_sheet.max_column)
+    month_column_index = column_index_from_string(month_cell.column)
+    day_cell = search_in_column(dor_sheet, day, 2, start=month_column_index, end=dor_sheet.max_column)
+    column_index = column_index_from_string(day_cell.column)
+    return dor_sheet, column_index
+
+
 def get_sec(s):
     if None:
         return None
@@ -63,3 +80,10 @@ def get_sec(s):
         seconds += int(time) * 60 ** i
         i += 1
     return seconds
+
+
+def is_weekend(date):
+    if date.isoweekday() in range(6, 8):
+        return True
+    else:
+        return False
