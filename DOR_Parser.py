@@ -28,7 +28,7 @@ def main():
     try:
         if not is_weekend(yesterday):
             # открываем страницу AA, находим столбец текущего дня
-            dor_sheet, cur_day_column_index = get_dor_sheet_and_day_cell(dor, "AA", yesterday)
+            dor_sheet, cur_day_column_index = get_dor_sheet_and_day_column(dor, "AA", yesterday)
 
             # находим файл с отчётами по АА сервис
             aa_reports = find_report(reports, "AA_")
@@ -59,7 +59,7 @@ def main():
     # ================ Начало АА Сервис =============================
     try:
         # открываем страницу AA, находим столбец текущего дня
-        dor_sheet, cur_day_column_index = get_dor_sheet_and_day_cell(dor, "AA", yesterday)
+        dor_sheet, cur_day_column_index = get_dor_sheet_and_day_column(dor, "AA", yesterday)
 
         # находим файл с отчётами по АА сервис
         aa_sc_reports = find_report(reports, "AA-Service-Centre_")
@@ -89,7 +89,7 @@ def main():
     try:
         if not is_weekend(yesterday):
             # открываем страницу BSC, находим столбец текущего дня
-            dor_sheet, cur_day_column_index = get_dor_sheet_and_day_cell(dor, "BSC", yesterday)
+            dor_sheet, cur_day_column_index = get_dor_sheet_and_day_column(dor, "BSC", yesterday)
 
             # находим файл с отчётами
             bsc_calls_reports = find_report(reports, "BSC_")
@@ -162,7 +162,7 @@ def main():
     try:
         if not is_weekend(yesterday):
             # открываем страницу Buderus, находим столбец текущего дня
-            dor_sheet, cur_day_column_index = get_dor_sheet_and_day_cell(dor, "Buderus", yesterday)
+            dor_sheet, cur_day_column_index = get_dor_sheet_and_day_column(dor, "Buderus", yesterday)
 
             # находим файл с отчётами
             buderus_reports = find_report(reports, "Buderus_")
@@ -195,7 +195,7 @@ def main():
     try:
         if not is_weekend(yesterday):
             # открываем страницу Buderus-Sales, находим столбец текущего дня
-            dor_sheet, cur_day_column_index = get_dor_sheet_and_day_cell(dor, "Buderus Sale", yesterday)
+            dor_sheet, cur_day_column_index = get_dor_sheet_and_day_column(dor, "Buderus Sale", yesterday)
 
             # находим файл с отчётами
             buderus_sales_reports = find_report(reports, "Buderus-Sale_")
@@ -227,7 +227,7 @@ def main():
     # ================ Начало K2W Сервис =============================
     try:
         # открываем страницу K2W, находим столбец текущего дня
-        dor_sheet, cur_day_column_index = get_dor_sheet_and_day_cell(dor, "K2W", yesterday)
+        dor_sheet, cur_day_column_index = get_dor_sheet_and_day_column(dor, "K2W", yesterday)
 
         # находим файл с отчётами по АА сервис
         k2w_calls_reports = find_report(reports, "K2W-calls_")
@@ -317,7 +317,7 @@ def main():
     # ============================ Invitro ===============================================================
     try:
         # открываем страницу Invitro, находим столбец текущего дня
-        dor_sheet, cur_day_column_index = get_dor_sheet_and_day_cell(dor, "Invitro", yesterday)
+        dor_sheet, cur_day_column_index = get_dor_sheet_and_day_column(dor, "Invitro", yesterday)
 
         # находим файл с отчётами
         invitro_calls_reports = find_report(reports, "Invitro_Calls(Cities+Expert)_")
@@ -408,7 +408,7 @@ def main():
 
     # ============================ Invitro-Expert ========================================================
     try:
-        dor_sheet, cur_day_column_index = get_dor_sheet_and_day_cell(dor, "Expert", yesterday)
+        dor_sheet, cur_day_column_index = get_dor_sheet_and_day_column(dor, "Expert", yesterday)
 
         # находим файл с отчётами
         invitro_expert_calls_reports = find_report(reports, "Expert-Calls_")
@@ -452,7 +452,7 @@ def main():
 
     try:
         # открываем страницу Kaspersky-B2C, находим столбец текущего дня
-        dor_sheet, cur_day_column_index = get_dor_sheet_and_day_cell(dor, "B2C", yesterday, next_month_from=26)
+        dor_sheet, cur_day_column_index = get_dor_sheet_and_day_column(dor, "B2C", yesterday, next_month_from=26)
 
         # находим файл с отчётами
         kaspersky_b2c_calls_reports = find_report(reports, "Kaspersky-B2C_")
@@ -579,7 +579,7 @@ def main():
     try:
         if not is_weekend(yesterday):
             # открываем страницу Kaspersky-B2B, находим столбец текущего дня
-            dor_sheet, cur_day_column_index = get_dor_sheet_and_day_cell(dor, "B2B", yesterday, next_month_from=26)
+            dor_sheet, cur_day_column_index = get_dor_sheet_and_day_column(dor, "B2B", yesterday, next_month_from=26)
 
             # находим файл с отчётами
             kaspersky_b2b_calls_reports = find_report(reports, "Kaspersky-B2B_")
@@ -606,7 +606,7 @@ def main():
 
     try:
         # открываем страницу Kaspersky-MEA, находим столбец текущего дня
-        dor_sheet, cur_day_column_index = get_dor_sheet_and_day_cell(dor, "MEA", yesterday, next_month_from=26)
+        dor_sheet, cur_day_column_index = get_dor_sheet_and_day_column(dor, "MEA", yesterday, next_month_from=26)
 
         # находим файл с отчётами
         kaspersky_mea_calls_reports = find_report(reports, "Kaspersky-MEA_")
