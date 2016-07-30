@@ -47,9 +47,9 @@ def reports_name_and_path(exclude_folder=''):
             yield file_name, dir_path
 
 
-def find_report(reports, beginning):
+def find_report(reports, beginning, day):
     for report in reports:
-        if report[0].startswith(beginning):
+        if report[0].startswith(beginning) and get_date(report[0]) == day:
             report_path = os.path.join(report[1], report[0])
             return report_path
     return None
@@ -87,3 +87,9 @@ def is_weekend(date):
         return True
     else:
         return False
+
+
+def get_date(f):
+    f_name = f.split('.')[0]
+    f_date = datetime.datetime.strptime(f_name.split('_')[-1], "%Y-%m-%d-%H-%M-%S").date()
+    return f_date

@@ -5,25 +5,26 @@ from os.path import join
 
 
 def main():
-    path = './Daily reports'  # Путь к папкам с отчётами
+    path = '../Daily reports'  # Относительный путь к папкам с отчётами
     if os.access(path, 1):  # Проверяем наличие доступа к папке
         os.chdir(path)
     else:
-        input("Access denied or 'Daily reports' folder may not exist.")
+        print("Access denied or 'reports' folder may not exist.")
         exit()
 
+    old_reports_f_name = '_old'
     reports_path = os.getcwd()  # Запомнили полный путь к директории с отчётами
-    old_reports_folder = join(reports_path, '_old')  # Путь к папке для бэкапа отчётов
+    old_reports_folder = join(reports_path, old_reports_f_name)  # Путь к папке для бэкапа отчётов
 
     if not os.access(old_reports_folder, 1):
         os.mkdir(old_reports_folder)
 
-    # Получаем список папок в директории ./Daily reports. Все файлы исключаются.
+    # Получаем список папок в директории ./reports. Все файлы исключаются.
     folders = [f for f in os.listdir(reports_path) if
                os.path.isdir(join(reports_path, f)) and
-               f != old_reports_folder
+               f != old_reports_f_name
                ]
-    reports = {}  # Словарь для путей к отчётам и их названиям. { Название отчёта : путь к нему} 
+    reports = {}  # Словарь для путей к отчётам и их названиям. { Название отчёта : путь к нему}
 
     # Проходимся по каждой папке с отчётами и заносим {название отчёта : путь} в словарь
     for folder in folders:
@@ -35,12 +36,13 @@ def main():
     # Новый словарь с датами создания отчётов {название отчёта: дата в формате Y-m-d
     report_dates = {}
     for key in reports:
-        report_dates[key] = datetime.datetime.strptime(key[-15:-25:-1][::-1], "%Y-%m-%d").date()
+        report_dates[key] = datetime.datetime.strptime(key.split('_')[-1][0:-5], "%Y-%m-%d-%H-%M-%S").date()
 
     # Список с названиями отчётов что старше сегодняшнего дня.
     outdated_reports_lts = [name for name, date in report_dates.items() if date < datetime.date.today()]
 
     # Словарь содержащий список старых отчётов { имя отчёта : полный путь }
+    print(datetime.datetime.today())
     print("Старые отчёты будут скопированы в папку %s и удалены." % old_reports_folder)
     print("\nСписок старых отчётов\n======================================")
     outdated_reports = {}
@@ -51,7 +53,7 @@ def main():
 
     print("\nФайлы удалены\n======================================")
 
-    # Копируем каждый отчёт в собственную папку в папке ./Daily reports/ old_reports_folder
+    # Копируем каждый отчёт в собственную папку в папке ./reports/ old_reports_folder
     for key, value in outdated_reports.items():
         report_folder = os.path.basename(os.path.normpath(value))
         save_dir = join(old_reports_folder, report_folder)
@@ -65,7 +67,7 @@ def main():
         os.remove(join(path, name))
         print("%s successfully removed." % join(path, name))
 
-    print("\n%i files were removed." % len(outdated_reports))
+    print("\n%i files were removed.\n\n" % len(outdated_reports))
 
 if __name__ == '__main__':
     main()
