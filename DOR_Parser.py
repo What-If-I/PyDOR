@@ -31,7 +31,7 @@ def main():
             dor_sheet, cur_day_column_index = get_dor_sheet_and_day_column(dor, "AA", yesterday)
 
             # находим файл с отчётами по АА сервис
-            aa_reports = find_report(reports, "AA_", yesterday)
+            aa_reports = find_report(reports, "AA_", today)
 
             # открываем отчёт AA
             aa_report = openpyxl.load_workbook(aa_reports)
@@ -62,7 +62,7 @@ def main():
         dor_sheet, cur_day_column_index = get_dor_sheet_and_day_column(dor, "AA", yesterday)
 
         # находим файл с отчётами по АА сервис
-        aa_sc_reports = find_report(reports, "AA-Service-Centre_", yesterday)
+        aa_sc_reports = find_report(reports, "AA-Service-Centre_", today)
 
         # открываем отчёт AA-SC
         aa_sc = openpyxl.load_workbook(aa_sc_reports)
@@ -92,8 +92,8 @@ def main():
             dor_sheet, cur_day_column_index = get_dor_sheet_and_day_column(dor, "BSC", yesterday)
 
             # находим файл с отчётами
-            bsc_calls_reports = find_report(reports, "BSC_", yesterday)
-            bsc_status_reports = find_report(reports, "BSC-Status_", yesterday)
+            bsc_calls_reports = find_report(reports, "BSC_", today)
+            bsc_status_reports = find_report(reports, "BSC-Status_", today)
 
             # открываем отчёт BSC
             bsc_report_wb = openpyxl.load_workbook(bsc_calls_reports)
@@ -165,7 +165,7 @@ def main():
             dor_sheet, cur_day_column_index = get_dor_sheet_and_day_column(dor, "Buderus", yesterday)
 
             # находим файл с отчётами
-            buderus_reports = find_report(reports, "Buderus_", yesterday)
+            buderus_reports = find_report(reports, "Buderus_", today)
 
             # открываем отчёт Buderus
             buderus_report_wb = openpyxl.load_workbook(buderus_reports)
@@ -198,7 +198,7 @@ def main():
             dor_sheet, cur_day_column_index = get_dor_sheet_and_day_column(dor, "Buderus Sale", yesterday)
 
             # находим файл с отчётами
-            buderus_sales_reports = find_report(reports, "Buderus-Sale_", yesterday)
+            buderus_sales_reports = find_report(reports, "Buderus-Sale_", today)
 
             # открываем отчёт Buderus-Sales
             buderus_sales_report_wb = openpyxl.load_workbook(buderus_sales_reports)
@@ -230,7 +230,7 @@ def main():
         dor_sheet, cur_day_column_index = get_dor_sheet_and_day_column(dor, "K2W", yesterday)
 
         # находим файл с отчётами по АА сервис
-        k2w_calls_reports = find_report(reports, "K2W-calls_", yesterday)
+        k2w_calls_reports = find_report(reports, "K2W-calls_", today)
 
         # открываем отчёт K2W
         k2w_calls = openpyxl.load_workbook(k2w_calls_reports)
@@ -272,8 +272,8 @@ def main():
         cur_day_column_index = column_index_from_string(curr_day_cell.column)
 
         # находим файл с отчётами
-        michelin_calls_reports = find_report(reports, "Michelin-Calls_", yesterday)
-        michelin_votes_reports = find_report(reports, "Michelin-Votes_", yesterday)
+        michelin_calls_reports = find_report(reports, "Michelin-Calls_", today)
+        michelin_votes_reports = find_report(reports, "Michelin-Votes_", today)
 
         # открываем отчёт Michelin-calls и собираем статистику
         michelin_calls_report_wb = openpyxl.load_workbook(michelin_calls_reports)
@@ -320,9 +320,9 @@ def main():
         dor_sheet, cur_day_column_index = get_dor_sheet_and_day_column(dor, "Invitro", yesterday)
 
         # находим файл с отчётами
-        invitro_calls_reports = find_report(reports, "Invitro_Calls(Cities+Expert)_", yesterday)
-        invitro_cities_calls_reports = find_report(reports, "Invitro_Calls(Cities)_", yesterday)
-        invitro_status_reports = find_report(reports, "Invitro-Status_", yesterday)
+        invitro_calls_reports = find_report(reports, "Invitro_Calls(Cities+Expert)_", today)
+        invitro_cities_calls_reports = find_report(reports, "Invitro_Calls(Cities)_", today)
+        invitro_status_reports = find_report(reports, "Invitro-Status_", today)
 
         # открываем отчёт Invitro-calls и собираем статистику
         invitro_calls_report_wb = openpyxl.load_workbook(invitro_calls_reports)
@@ -411,7 +411,7 @@ def main():
         dor_sheet, cur_day_column_index = get_dor_sheet_and_day_column(dor, "Expert", yesterday)
 
         # находим файл с отчётами
-        invitro_expert_calls_reports = find_report(reports, "Expert-Calls_", yesterday)
+        invitro_expert_calls_reports = find_report(reports, "Expert-Calls_", today)
 
         # открываем отчёт Invitro-Expert-calls и собираем статистику
         invitro_expert_calls_report_wb = openpyxl.load_workbook(invitro_expert_calls_reports)
@@ -455,9 +455,9 @@ def main():
         dor_sheet, cur_day_column_index = get_dor_sheet_and_day_column(dor, "B2C", yesterday, next_month_from=26)
 
         # находим файл с отчётами
-        kaspersky_b2c_calls_reports = find_report(reports, "Kaspersky-B2C_", yesterday)
-        kaspersky_b2c_combined_status_reports = find_report(reports, "Kaspersky-B2C-Status(combined)_", yesterday)
-        kaspersky_b2c_agents_status_reports = find_report(reports, "Kaspersky-B2C-Status(agents)_", yesterday)
+        kaspersky_b2c_calls_reports = find_report(reports, "Kaspersky-B2C_", today)
+        kaspersky_b2c_combined_status_reports = find_report(reports, "Kaspersky-B2C-Status(combined)_", today)
+        kaspersky_b2c_agents_status_reports = find_report(reports, "Kaspersky-B2C-Status(agents)_", today)
 
         # открываем отчёт Kaspersky-B2C-calls и собираем статистику
         kaspersky_b2c_calls_report_wb = openpyxl.load_workbook(kaspersky_b2c_calls_reports)
@@ -582,7 +582,7 @@ def main():
             dor_sheet, cur_day_column_index = get_dor_sheet_and_day_column(dor, "B2B", yesterday, next_month_from=26)
 
             # находим файл с отчётами
-            kaspersky_b2b_calls_reports = find_report(reports, "Kaspersky-B2B_", yesterday)
+            kaspersky_b2b_calls_reports = find_report(reports, "Kaspersky-B2B_", today)
 
             # открываем отчёт Kaspersky-B2B-calls и собираем статистику
             kaspersky_b2b_calls_report_wb = openpyxl.load_workbook(kaspersky_b2b_calls_reports)
@@ -609,7 +609,7 @@ def main():
         dor_sheet, cur_day_column_index = get_dor_sheet_and_day_column(dor, "MEA", yesterday, next_month_from=26)
 
         # находим файл с отчётами
-        kaspersky_mea_calls_reports = find_report(reports, "Kaspersky-MEA_", yesterday)
+        kaspersky_mea_calls_reports = find_report(reports, "Kaspersky-MEA_", today)
 
         # открываем отчёт Kaspersky-MEA-calls и собираем статистику
         kaspersky_mea_calls_report_wb = openpyxl.load_workbook(kaspersky_mea_calls_reports)
