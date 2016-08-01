@@ -55,11 +55,11 @@ def find_report(reports, beginning, day):
     return None
 
 
-def get_dor_sheet_and_day_column(dor, sheet, date, next_month_from=31):
+def get_dor_sheet_and_day_column(dor, sheet, date, next_month_after=31):
     day = date.day
-    if day < next_month_from:
+    if day <= next_month_after:
         month = "{:%B}".format(date)
-    else:
+    else:  # go to next month
         next_month = date + datetime.timedelta(15)
         month = "{:%B}".format(next_month)
     dor_sheet = dor.get_sheet_by_name(sheet)

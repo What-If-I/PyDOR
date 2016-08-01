@@ -16,7 +16,7 @@ def main():
     today = datetime.date.today()
     current_month = "{:%B}".format(today)
     yesterday = today - datetime.timedelta(1)
-    yesterday_day = today.day - 1
+    yesterday_day = yesterday.day
 
     # отркываем файл DOR
     dor = openpyxl.load_workbook("DOR.xlsx")
@@ -452,7 +452,7 @@ def main():
 
     try:
         # открываем страницу Kaspersky-B2C, находим столбец текущего дня
-        dor_sheet, cur_day_column_index = get_dor_sheet_and_day_column(dor, "B2C", yesterday, next_month_from=26)
+        dor_sheet, cur_day_column_index = get_dor_sheet_and_day_column(dor, "B2C", yesterday, next_month_after=25)
 
         # находим файл с отчётами
         kaspersky_b2c_calls_reports = find_report(reports, "Kaspersky-B2C_", today)
@@ -579,7 +579,7 @@ def main():
     try:
         if not is_weekend(yesterday):
             # открываем страницу Kaspersky-B2B, находим столбец текущего дня
-            dor_sheet, cur_day_column_index = get_dor_sheet_and_day_column(dor, "B2B", yesterday, next_month_from=26)
+            dor_sheet, cur_day_column_index = get_dor_sheet_and_day_column(dor, "B2B", yesterday, next_month_after=25)
 
             # находим файл с отчётами
             kaspersky_b2b_calls_reports = find_report(reports, "Kaspersky-B2B_", today)
@@ -606,7 +606,7 @@ def main():
 
     try:
         # открываем страницу Kaspersky-MEA, находим столбец текущего дня
-        dor_sheet, cur_day_column_index = get_dor_sheet_and_day_column(dor, "MEA", yesterday, next_month_from=26)
+        dor_sheet, cur_day_column_index = get_dor_sheet_and_day_column(dor, "MEA", yesterday, next_month_after=25)
 
         # находим файл с отчётами
         kaspersky_mea_calls_reports = find_report(reports, "Kaspersky-MEA_", today)
@@ -631,6 +631,7 @@ def main():
     # ================================================================================================
 
     try:
+        dor.save("DOR.xlsx")
         dor.save("DOR_test.xlsx")
     except PermissionError:
         errors += 1
