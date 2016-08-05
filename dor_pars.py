@@ -82,6 +82,7 @@ def get_sec(s):
     return seconds
 
 
+# TODO: не учитывает праздники. Надо поправить.
 def is_weekend(date):
     if date.isoweekday() in range(6, 8):
         return True
@@ -93,3 +94,12 @@ def get_date(f):
     f_name = f.split('.')[0]
     f_date = datetime.datetime.strptime(f_name.split('_')[-1], "%Y-%m-%d-%H-%M-%S").date()
     return f_date
+
+
+def get_header_fields(sheet):
+    for cur_col in range(1, sheet.max_column + 1):
+        cur_row = 1
+        if sheet.cell(row=cur_row, column=cur_col).value is None:
+            cur_row = 2
+        yield sheet.cell(row=cur_row, column=cur_col).value.replace("\n", "").replace("\r", ""), \
+            sheet.cell(row=cur_row, column=cur_col).coordinate
