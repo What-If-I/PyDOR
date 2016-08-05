@@ -8,8 +8,8 @@ logging.basicConfig(filename='log.log', level=logging.DEBUG)
 # noinspection SpellCheckingInspection,PyBroadException
 def main():
     errors = 0
-    # directory = '//10.68.25.4/Project/UCP/Reports/Daily reports/'
-    directory = './Daily reports'
+    directory = '//10.68.25.4/Project/UCP/Reports/Daily reports/'
+    # directory = './Daily reports'
     os.chdir(directory)
 
     # Сегодняшний день и месяц
@@ -93,7 +93,7 @@ def main():
 
             # находим файл с отчётами
             bsc_calls_reports = find_report(reports, "BSC_", today)
-            bsc_status_reports = find_report(reports, "AA-Status_", today)
+            bsc_status_reports = find_report(reports, "BSC-Status_", today)
 
             # открываем отчёт BSC
             bsc_report_wb = openpyxl.load_workbook(bsc_calls_reports)
@@ -110,27 +110,7 @@ def main():
             bsc_status_report_wb = openpyxl.load_workbook(bsc_status_reports)
             bsc_status_report_sheet = bsc_status_report_wb.active
 
-            bsc_status_total_row = search_in_row(bsc_status_report_sheet, "Total:", 1,
-                                                 start=1, end=bsc_status_report_sheet.max_row).row
-
-            bsc_status_total_cell_coordinates = {"on_call": "E{}".format(bsc_status_total_row),
-                                                 "after_call": "G{}".format(bsc_status_total_row),
-                                                 "mail_flex": "H{}".format(bsc_status_total_row),
-                                                 "back_office_work": "J{}".format(bsc_status_total_row),
-                                                 "available": "D{}".format(bsc_status_total_row)
-                                                 }
-
-            bsc_status_statistic = {"on_call": bsc_status_report_sheet
-                                    [bsc_status_total_cell_coordinates["on_call"]].value,
-                                    "after_call": bsc_status_report_sheet
-                                    [bsc_status_total_cell_coordinates["after_call"]].value,
-                                    "mail_flex": bsc_status_report_sheet
-                                    [bsc_status_total_cell_coordinates["mail_flex"]].value,
-                                    "back_office_work": bsc_status_report_sheet
-                                    [bsc_status_total_cell_coordinates["back_office_work"]].value,
-                                    "available": bsc_status_report_sheet
-                                    [bsc_status_total_cell_coordinates["available"]].value
-                                    }
+            status_time = get_status_total(bsc_status_report_sheet)
 
             # Заполняем DOR BSC
 
@@ -142,15 +122,16 @@ def main():
             dor_sheet.cell(column=cur_day_column_index, row=11).value = bsc_statistic["ghost_calls"]
 
             dor_sheet.cell(column=cur_day_column_index, row=12).value = \
-                (get_sec(bsc_status_statistic["on_call"]) +
-                 get_sec(bsc_status_statistic["after_call"]) +
-                 get_sec(bsc_status_statistic["mail_flex"]) +
-                 get_sec(bsc_status_statistic["back_office_work"])) / \
-                (get_sec(bsc_status_statistic["on_call"]) +
-                 get_sec(bsc_status_statistic["after_call"]) +
-                 get_sec(bsc_status_statistic["mail_flex"]) +
-                 get_sec(bsc_status_statistic["back_office_work"]) +
-                 get_sec(bsc_status_statistic["available"]))
+                (get_sec(status_time["On Call"]) +
+                 get_sec(status_time["After Call Work (auto)"]) +
+                 get_sec(status_time["Mail Flex"]) +
+                 get_sec(status_time["Back Office Work"])) / \
+                (get_sec(status_time["On Call"]) +
+                 get_sec(status_time["After Call Work (auto)"]) +
+                 get_sec(status_time["Mail Flex"]) +
+                 get_sec(status_time["Back Office Work"]) +
+                 get_sec(status_time["Available"]))
+
     except:
         errors += 1
         logging.debug("\n==========================================")
@@ -350,30 +331,7 @@ def main():
         invitro_status_report_wb = openpyxl.load_workbook(invitro_status_reports)
         invitro_status_report_sheet = invitro_status_report_wb.active
 
-        invitro_status_total_row = search_in_row(invitro_status_report_sheet, "Total:", 1,
-                                                 start=1, end=invitro_status_report_sheet.max_row).row
-
-        invitro_status_total_cell_coordinates = {"on_call": "E{}".format(invitro_status_total_row),
-                                                 "after_call": "F{}".format(invitro_status_total_row),
-                                                 "after_call_manual": "G{}".format(invitro_status_total_row),
-                                                 "chat": "K{}".format(invitro_status_total_row),
-                                                 "back_office_work": "J{}".format(invitro_status_total_row),
-                                                 "available": "D{}".format(invitro_status_total_row)
-                                                 }
-
-        invitro_status_statistic = {"on_call": invitro_status_report_sheet
-                                    [invitro_status_total_cell_coordinates["on_call"]].value,
-                                    "after_call": invitro_status_report_sheet
-                                    [invitro_status_total_cell_coordinates["after_call"]].value,
-                                    "after_call_manual": invitro_status_report_sheet
-                                    [invitro_status_total_cell_coordinates["after_call_manual"]].value,
-                                    "chat": invitro_status_report_sheet
-                                    [invitro_status_total_cell_coordinates["chat"]].value,
-                                    "back_office_work": invitro_status_report_sheet
-                                    [invitro_status_total_cell_coordinates["back_office_work"]].value,
-                                    "available": invitro_status_report_sheet
-                                    [invitro_status_total_cell_coordinates["available"]].value
-                                    }
+        status_time = get_status_total(invitro_status_report_sheet)
 
         # Заполняем DOR Invitro
 
@@ -388,17 +346,17 @@ def main():
         dor_sheet.cell(column=cur_day_column_index, row=14).value = invitro_calls_statistic["abandoned<5"]
 
         dor_sheet.cell(column=cur_day_column_index, row=15).value = \
-            (get_sec(invitro_status_statistic["on_call"]) +
-             get_sec(invitro_status_statistic["after_call"]) +
-             get_sec(invitro_status_statistic["after_call_manual"]) +
-             get_sec(invitro_status_statistic["chat"]) +
-             get_sec(invitro_status_statistic["back_office_work"])) / \
-            (get_sec(invitro_status_statistic["on_call"]) +
-             get_sec(invitro_status_statistic["after_call"]) +
-             get_sec(invitro_status_statistic["after_call_manual"]) +
-             get_sec(invitro_status_statistic["chat"]) +
-             get_sec(invitro_status_statistic["back_office_work"]) +
-             get_sec(invitro_status_statistic["available"]))
+            (get_sec(status_time["On Call"]) +
+             get_sec(status_time["After Call Work (auto)"]) +
+             get_sec(status_time["After Call Work (status)"]) +
+             get_sec(status_time["Chat"]) +
+             get_sec(status_time["Back Office Work"])) / \
+            (get_sec(status_time["On Call"]) +
+             get_sec(status_time["After Call Work (auto)"]) +
+             get_sec(status_time["After Call Work (status)"]) +
+             get_sec(status_time["Chat"]) +
+             get_sec(status_time["Back Office Work"]) +
+             get_sec(status_time["Available"]))
     except:
         errors += 1
         logging.debug("\n==========================================")
@@ -471,65 +429,13 @@ def main():
         kaspersky_b2c_combined_status_report_wb = openpyxl.load_workbook(kaspersky_b2c_combined_status_reports)
         kaspersky_b2c_combined_status_report_sheet = kaspersky_b2c_combined_status_report_wb.active
 
-        kaspersky_b2c_combined_status_total_row = search_in_row(
-            kaspersky_b2c_combined_status_report_sheet, "Total:", 1,
-            start=1, end=kaspersky_b2c_combined_status_report_sheet.max_row).row
-
-        kaspersky_b2c_combined_status_total_cell_coordinates = {
-            "on_call": "E{}".format(kaspersky_b2c_combined_status_total_row),
-            "after_call": "F{}".format(kaspersky_b2c_combined_status_total_row),
-            "after_call_manual": "G{}".format(kaspersky_b2c_combined_status_total_row),
-            "admin_work": "I{}".format(kaspersky_b2c_combined_status_total_row),
-            "availible_no_ACD": "T{}".format(kaspersky_b2c_combined_status_total_row),
-            "available": "D{}".format(kaspersky_b2c_combined_status_total_row)
-        }
-
-        kaspersky_b2c_combined_status_statistic = {
-            "on_call": kaspersky_b2c_combined_status_report_sheet
-            [kaspersky_b2c_combined_status_total_cell_coordinates["on_call"]].value,
-            "after_call": kaspersky_b2c_combined_status_report_sheet
-            [kaspersky_b2c_combined_status_total_cell_coordinates["after_call"]].value,
-            "after_call_manual": kaspersky_b2c_combined_status_report_sheet
-            [kaspersky_b2c_combined_status_total_cell_coordinates["after_call_manual"]].value,
-            "admin_work": kaspersky_b2c_combined_status_report_sheet
-            [kaspersky_b2c_combined_status_total_cell_coordinates["admin_work"]].value,
-            "availible_no_ACD": kaspersky_b2c_combined_status_report_sheet
-            [kaspersky_b2c_combined_status_total_cell_coordinates["availible_no_ACD"]].value,
-            "available": kaspersky_b2c_combined_status_report_sheet
-            [kaspersky_b2c_combined_status_total_cell_coordinates["available"]].value
-        }
+        status_time_combined = get_status_total(kaspersky_b2c_combined_status_report_sheet)
 
         # открываем отчёт Kaspersky-B2C-combined-status и собираем статистику
         kaspersky_b2c_agents_status_report_wb = openpyxl.load_workbook(kaspersky_b2c_agents_status_reports)
         kaspersky_b2c_agents_status_report_sheet = kaspersky_b2c_agents_status_report_wb.active
 
-        kaspersky_b2c_agents_status_total_row = search_in_row(
-            kaspersky_b2c_agents_status_report_sheet, "Total:", 1, start=1,
-            end=kaspersky_b2c_agents_status_report_sheet.max_row).row
-
-        kaspersky_b2c_agents_status_total_cell_coordinates = {
-            "on_call": "E{}".format(kaspersky_b2c_agents_status_total_row),
-            "after_call": "F{}".format(kaspersky_b2c_agents_status_total_row),
-            "after_call_manual": "G{}".format(kaspersky_b2c_agents_status_total_row),
-            "admin_work": "I{}".format(kaspersky_b2c_agents_status_total_row),
-            "availible_no_ACD": "T{}".format(kaspersky_b2c_agents_status_total_row),
-            "available": "D{}".format(kaspersky_b2c_agents_status_total_row)
-        }
-
-        kaspersky_b2c_agents_status_statistic = {
-            "on_call": kaspersky_b2c_combined_status_report_sheet
-            [kaspersky_b2c_agents_status_total_cell_coordinates["on_call"]].value,
-            "after_call": kaspersky_b2c_combined_status_report_sheet
-            [kaspersky_b2c_agents_status_total_cell_coordinates["after_call"]].value,
-            "after_call_manual": kaspersky_b2c_combined_status_report_sheet
-            [kaspersky_b2c_agents_status_total_cell_coordinates["after_call_manual"]].value,
-            "admin_work": kaspersky_b2c_combined_status_report_sheet
-            [kaspersky_b2c_agents_status_total_cell_coordinates["admin_work"]].value,
-            "availible_no_ACD": kaspersky_b2c_combined_status_report_sheet
-            [kaspersky_b2c_agents_status_total_cell_coordinates["availible_no_ACD"]].value,
-            "available": kaspersky_b2c_combined_status_report_sheet
-            [kaspersky_b2c_agents_status_total_cell_coordinates["available"]].value
-        }
+        status_time_b2c = get_status_total(kaspersky_b2c_agents_status_report_sheet)
 
         # Заполняем DOR Kaspersky-B2C
 
@@ -538,30 +444,30 @@ def main():
         dor_sheet.cell(column=cur_day_column_index, row=7).value = kaspersky_b2c_calls_statistic["ACW"]
 
         dor_sheet.cell(column=cur_day_column_index, row=14).value = \
-            (get_sec(kaspersky_b2c_combined_status_statistic["on_call"]) +
-             get_sec(kaspersky_b2c_combined_status_statistic["after_call"]) +
-             get_sec(kaspersky_b2c_combined_status_statistic["after_call_manual"]) +
-             get_sec(kaspersky_b2c_combined_status_statistic["admin_work"]) +
-             get_sec(kaspersky_b2c_combined_status_statistic["availible_no_ACD"])) / \
-            (get_sec(kaspersky_b2c_combined_status_statistic["on_call"]) +
-             get_sec(kaspersky_b2c_combined_status_statistic["after_call"]) +
-             get_sec(kaspersky_b2c_combined_status_statistic["after_call_manual"]) +
-             get_sec(kaspersky_b2c_combined_status_statistic["admin_work"]) +
-             get_sec(kaspersky_b2c_combined_status_statistic["availible_no_ACD"]) +
-             get_sec(kaspersky_b2c_combined_status_statistic["available"]))
+            (get_sec(status_time_combined["On Call"]) +
+             get_sec(status_time_combined["After Call Work (auto)"]) +
+             get_sec(status_time_combined["After Call Work (status)"]) +
+             get_sec(status_time_combined["Admin Work"]) +
+             get_sec(status_time_combined["Available no ACD"])) / \
+            (get_sec(status_time_combined["On Call"]) +
+             get_sec(status_time_combined["After Call Work (auto)"]) +
+             get_sec(status_time_combined["After Call Work (status)"]) +
+             get_sec(status_time_combined["Admin Work"]) +
+             get_sec(status_time_combined["Available no ACD"]) +
+             get_sec(status_time_combined["Available"]))
 
         dor_sheet.cell(column=cur_day_column_index, row=18).value = \
-            (get_sec(kaspersky_b2c_agents_status_statistic["on_call"]) +
-             get_sec(kaspersky_b2c_agents_status_statistic["after_call"]) +
-             get_sec(kaspersky_b2c_agents_status_statistic["after_call_manual"]) +
-             get_sec(kaspersky_b2c_agents_status_statistic["admin_work"]) +
-             get_sec(kaspersky_b2c_agents_status_statistic["availible_no_ACD"])) / \
-            (get_sec(kaspersky_b2c_agents_status_statistic["on_call"]) +
-             get_sec(kaspersky_b2c_agents_status_statistic["after_call"]) +
-             get_sec(kaspersky_b2c_agents_status_statistic["after_call_manual"]) +
-             get_sec(kaspersky_b2c_agents_status_statistic["admin_work"]) +
-             get_sec(kaspersky_b2c_agents_status_statistic["availible_no_ACD"]) +
-             get_sec(kaspersky_b2c_agents_status_statistic["available"]))
+            (get_sec(status_time_b2c["On Call"]) +
+             get_sec(status_time_b2c["After Call Work (auto)"]) +
+             get_sec(status_time_b2c["After Call Work (status)"]) +
+             get_sec(status_time_b2c["Admin Work"]) +
+             get_sec(status_time_b2c["Available no ACD"])) / \
+            (get_sec(status_time_b2c["On Call"]) +
+             get_sec(status_time_b2c["After Call Work (auto)"]) +
+             get_sec(status_time_b2c["After Call Work (status)"]) +
+             get_sec(status_time_b2c["Admin Work"]) +
+             get_sec(status_time_b2c["Available no ACD"]) +
+             get_sec(status_time_b2c["Available"]))
 
         """ Occupancy
         (On call + after call + after call ручной + admin work + no ACD) /
