@@ -8,7 +8,7 @@ logging.basicConfig(filename='log.log', level=logging.DEBUG)
 # noinspection SpellCheckingInspection,PyBroadException
 def main():
     errors = 0
-    # directory = '//10.68.25.4/Project/UCP/Reports/Daily reports'
+    # directory = '//10.68.25.4/Project/UCP/Reports/Daily reports/'
     directory = './Daily reports'
     os.chdir(directory)
 
@@ -93,7 +93,7 @@ def main():
 
             # находим файл с отчётами
             bsc_calls_reports = find_report(reports, "BSC_", today)
-            bsc_status_reports = find_report(reports, "BSC-Status_", today)
+            bsc_status_reports = find_report(reports, "AA-Status_", today)
 
             # открываем отчёт BSC
             bsc_report_wb = openpyxl.load_workbook(bsc_calls_reports)
