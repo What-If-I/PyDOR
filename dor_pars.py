@@ -99,7 +99,15 @@ def get_date(f):
 def get_header_fields(sheet):
     for cur_col in range(1, sheet.max_column + 1):
         cur_row = 1
-        if sheet.cell(row=cur_row, column=cur_col).value is None:
+        # go to next row right below Not Ready to not skip After Call auto
+        if sheet.cell(row=cur_row, column=cur_col + 1).value is None:
             cur_row = 2
-        yield sheet.cell(row=cur_row, column=cur_col).value.replace("\n", "").replace("\r", ""), \
-            sheet.cell(row=cur_row, column=cur_col).coordinate
+        cell_value = sheet.cell(row=cur_row, column=cur_col).value.replace("\n", " ").replace("\r", " ")
+        cell_column = sheet.cell(row=cur_row, column=cur_col).column
+        yield cell_value, cell_column
+
+
+def get_status_total(sheet):
+    name_col_number = {value: coordinates for value, coordinates in get_header_fields(sheet)}
+    name_value = {name: sheet[coord+str(sheet.max_row)].value for name, coord in name_col_number.items()}
+    return name_value
