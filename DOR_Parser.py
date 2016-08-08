@@ -12,6 +12,7 @@ def main():
     # directory = './Daily reports'
     os.chdir(directory)
 
+    # TODO: Возможность запускать отчёт за указанный день
     # Сегодняшний день и месяц
     today = datetime.date.today()
     current_month = "{:%B}".format(today)
@@ -22,6 +23,7 @@ def main():
     dor = openpyxl.load_workbook("DOR.xlsx")
 
     # Список всех файлов в директории
+    # TODO: Брать все отчёты. Чтобы можно было снимать статистику за указанный день.
     reports = [(name, path) for name, path in reports_name_and_path(exclude_folder="_old")]
 
     # ================================= Начало АА =================================================
@@ -87,7 +89,7 @@ def main():
 
     # ======================= Начало BSC =========================================================
     try:
-        if not is_weekend(yesterday):
+        if is_weekend(yesterday):
             # открываем страницу BSC, находим столбец текущего дня
             dor_sheet, cur_day_column_index = get_dor_sheet_and_day_column(dor, "BSC", yesterday)
 
@@ -121,16 +123,13 @@ def main():
             dor_sheet.cell(column=cur_day_column_index, row=10).value = bsc_statistic["abandoned"]
             dor_sheet.cell(column=cur_day_column_index, row=11).value = bsc_statistic["ghost_calls"]
 
-            dor_sheet.cell(column=cur_day_column_index, row=12).value = \
-                (get_sec(status_time["On Call"]) +
-                 get_sec(status_time["After Call Work (auto)"]) +
-                 get_sec(status_time["Mail Flex"]) +
-                 get_sec(status_time["Back Office Work"])) / \
-                (get_sec(status_time["On Call"]) +
-                 get_sec(status_time["After Call Work (auto)"]) +
-                 get_sec(status_time["Mail Flex"]) +
-                 get_sec(status_time["Back Office Work"]) +
-                 get_sec(status_time["Available"]))
+            dor_sheet.cell(column=cur_day_column_index, row=12).value = calc_occupancy(
+                status_time["Available"],
+                status_time["On Call"],
+                status_time["After Call Work (auto)"],
+                status_time["Mail Flex"],
+                status_time["Back Office Work"]
+            )
 
     except:
         errors += 1
@@ -205,7 +204,7 @@ def main():
 
     # ================================================================================================
 
-    # ================ Начало K2W Сервис =============================
+    # ================================ Начало K2W Сервис =============================================
     try:
         # открываем страницу K2W, находим столбец текущего дня
         dor_sheet, cur_day_column_index = get_dor_sheet_and_day_column(dor, "K2W", yesterday)
@@ -345,18 +344,15 @@ def main():
         dor_sheet.cell(column=cur_day_column_index, row=13).value = invitro_calls_statistic["abandoned"]
         dor_sheet.cell(column=cur_day_column_index, row=14).value = invitro_calls_statistic["abandoned<5"]
 
-        dor_sheet.cell(column=cur_day_column_index, row=15).value = \
-            (get_sec(status_time["On Call"]) +
-             get_sec(status_time["After Call Work (auto)"]) +
-             get_sec(status_time["After Call Work (status)"]) +
-             get_sec(status_time["Chat"]) +
-             get_sec(status_time["Back Office Work"])) / \
-            (get_sec(status_time["On Call"]) +
-             get_sec(status_time["After Call Work (auto)"]) +
-             get_sec(status_time["After Call Work (status)"]) +
-             get_sec(status_time["Chat"]) +
-             get_sec(status_time["Back Office Work"]) +
-             get_sec(status_time["Available"]))
+        dor_sheet.cell(column=cur_day_column_index, row=15).value = calc_occupancy(
+            status_time["Available"],
+            status_time["On Call"],
+            status_time["After Call Work (auto)"],
+            status_time["After Call Work (status)"],
+            status_time["Chat"],
+            status_time["Back Office Work"]
+        )
+
     except:
         errors += 1
         logging.debug("\n==========================================")
@@ -443,31 +439,23 @@ def main():
         dor_sheet.cell(column=cur_day_column_index, row=6).value = kaspersky_b2c_calls_statistic["ATT"]
         dor_sheet.cell(column=cur_day_column_index, row=7).value = kaspersky_b2c_calls_statistic["ACW"]
 
-        dor_sheet.cell(column=cur_day_column_index, row=14).value = \
-            (get_sec(status_time_combined["On Call"]) +
-             get_sec(status_time_combined["After Call Work (auto)"]) +
-             get_sec(status_time_combined["After Call Work (status)"]) +
-             get_sec(status_time_combined["Admin Work"]) +
-             get_sec(status_time_combined["Available no ACD"])) / \
-            (get_sec(status_time_combined["On Call"]) +
-             get_sec(status_time_combined["After Call Work (auto)"]) +
-             get_sec(status_time_combined["After Call Work (status)"]) +
-             get_sec(status_time_combined["Admin Work"]) +
-             get_sec(status_time_combined["Available no ACD"]) +
-             get_sec(status_time_combined["Available"]))
+        dor_sheet.cell(column=cur_day_column_index, row=14).value = calc_occupancy(
+            status_time_combined["Available"],
+            status_time_combined["On Call"],
+            status_time_combined["After Call Work (auto)"],
+            status_time_combined["After Call Work (status)"],
+            status_time_combined["Admin Work"],
+            status_time_combined["Available no ACD"]
+        )
 
-        dor_sheet.cell(column=cur_day_column_index, row=18).value = \
-            (get_sec(status_time_b2c["On Call"]) +
-             get_sec(status_time_b2c["After Call Work (auto)"]) +
-             get_sec(status_time_b2c["After Call Work (status)"]) +
-             get_sec(status_time_b2c["Admin Work"]) +
-             get_sec(status_time_b2c["Available no ACD"])) / \
-            (get_sec(status_time_b2c["On Call"]) +
-             get_sec(status_time_b2c["After Call Work (auto)"]) +
-             get_sec(status_time_b2c["After Call Work (status)"]) +
-             get_sec(status_time_b2c["Admin Work"]) +
-             get_sec(status_time_b2c["Available no ACD"]) +
-             get_sec(status_time_b2c["Available"]))
+        dor_sheet.cell(column=cur_day_column_index, row=18).value = calc_occupancy(
+            status_time_b2c["Available"],
+            status_time_b2c["On Call"],
+            status_time_b2c["After Call Work (auto)"],
+            status_time_b2c["After Call Work (status)"],
+            status_time_b2c["Admin Work"],
+            status_time_b2c["Available no ACD"]
+        )
 
         """ Occupancy
         (On call + after call + after call ручной + admin work + no ACD) /
