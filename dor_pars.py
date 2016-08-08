@@ -71,7 +71,7 @@ def get_dor_sheet_and_day_column(dor, sheet, date, next_month_after=31):
 
 
 def get_sec(s):
-    if None:
+    if s is None:
         return None
     times = s.split(':')
     seconds = 0
@@ -99,7 +99,6 @@ def get_date(f):
 def get_header_fields(sheet):
     for cur_col in range(1, sheet.max_column + 1):
         cur_row = 1
-        # go to next row right below Not Ready to not skip After Call auto
         if sheet.cell(row=cur_row, column=cur_col + 1).value is None:
             cur_row = 2
         cell_value = sheet.cell(row=cur_row, column=cur_col).value.replace("\n", " ").replace("\r", " ")
@@ -111,3 +110,17 @@ def get_status_total(sheet):
     name_col_number = {value: coordinates for value, coordinates in get_header_fields(sheet)}
     name_value = {name: sheet[coord+str(sheet.max_row)].value for name, coord in name_col_number.items()}
     return name_value
+
+
+def calc_occupancy(available, *args):
+    available_sec = get_sec(available)
+    busy_sec = [get_sec(arg) for arg in args]
+    if available_sec is None or busy_sec is None:
+        return None
+    total_busy_sec = sum(busy_sec)
+    total_time_sec = total_busy_sec + available_sec
+    try:
+        occupancy = total_busy_sec / total_time_sec
+    except ZeroDivisionError:
+        return None
+    return occupancy
