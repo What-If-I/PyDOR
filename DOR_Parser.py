@@ -1,8 +1,11 @@
 import openpyxl
 import logging
+import sys
+import getopt
 from dor_pars import *
 
 logging.basicConfig(filename='log.log', level=logging.DEBUG)
+opts, args = getopt.getopt(sys.argv[1:], "-d")  # принимаем день из консоли
 
 
 # noinspection SpellCheckingInspection,PyBroadException
@@ -12,19 +15,26 @@ def main():
     # directory = './Daily reports'
     os.chdir(directory)
 
-    # TODO: Возможность запускать отчёт за указанный день
     # Сегодняшний день и месяц
     today = datetime.date.today()
-    current_month = "{:%B}".format(today)
+
+    # Собираем за указанный день
+    for opt in opts:
+        if '-d' in opt:
+            today = datetime.datetime.strptime(args[0], "%d-%m-%y").date() + datetime.timedelta(1)
+
     yesterday = today - datetime.timedelta(1)
+    current_month = "{:%B}".format(yesterday)
     yesterday_day = yesterday.day
 
     # отркываем файл DOR
     dor = openpyxl.load_workbook("DOR.xlsx")
 
     # Список всех файлов в директории
-    # TODO: Брать все отчёты. Чтобы можно было снимать статистику за указанный день.
-    reports = [(name, path) for name, path in reports_name_and_path(exclude_folder="_old")]
+    if today == datetime.date.today():
+        reports = [(name, path) for name, path in reports_name_and_path(exclude_folder="_old")]
+    else:
+        reports = [(name, path) for name, path in reports_name_and_path()]
 
     # ================================= Начало АА =================================================
     try:
@@ -89,7 +99,7 @@ def main():
 
     # ======================= Начало BSC =========================================================
     try:
-        if is_weekend(yesterday):
+        if not is_weekend(yesterday):
             # открываем страницу BSC, находим столбец текущего дня
             dor_sheet, cur_day_column_index = get_dor_sheet_and_day_column(dor, "BSC", yesterday)
 
