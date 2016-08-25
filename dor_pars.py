@@ -39,10 +39,11 @@ def search_in_row(sheet, value, in_column, start, end):
     return False
 
 
-def reports_name_and_path(exclude_folder=''):
+def reports_name_and_path(*exclude_folders):
     for dir_path, dir_names, file_names in os.walk(os.getcwd()):
-        if exclude_folder in dir_names:
-            dir_names.remove(exclude_folder)
+        for folder in exclude_folders:
+            if folder in dir_names:
+                dir_names.remove(folder)
         for file_name in file_names:
             yield file_name, dir_path
 
@@ -106,7 +107,7 @@ def get_header_fields(sheet):
         yield cell_value, cell_column
 
 
-def get_status_total(sheet):
+def get_columns_total(sheet):
     name_col_number = {value: coordinates for value, coordinates in get_header_fields(sheet)}
     name_value = {name: sheet[coord+str(sheet.max_row)].value for name, coord in name_col_number.items()}
     return name_value
