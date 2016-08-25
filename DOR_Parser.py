@@ -2,10 +2,8 @@ import openpyxl
 import logging
 import sys
 import getopt
+import logger
 from dor_pars import *
-
-logging.basicConfig(filename='log.log', level=logging.DEBUG)
-opts, args = getopt.getopt(sys.argv[1:], "-d")  # принимаем день из консоли
 
 
 # noinspection SpellCheckingInspection,PyBroadException
@@ -15,7 +13,12 @@ def main():
     # directory = './Daily reports'
     os.chdir(directory)
 
-    # Сегодняшний день и месяц
+    logging.basicConfig(filename='../script/logs/fill_dor_detailed-log.log', level=logging.DEBUG)
+    error_logger = logger.Logger("../script/fill_dor_log.log", )
+
+    opts, args = getopt.getopt(sys.argv[1:], "-d")  # принимаем день из консоли
+
+    # Сегодняшняя дата
     today = datetime.date.today()
 
     # Собираем за указанный день
@@ -28,11 +31,15 @@ def main():
     yesterday_day = yesterday.day
 
     # отркываем файл DOR
-    dor = openpyxl.load_workbook("DOR.xlsx")
+    try:
+        dor = openpyxl.load_workbook("DOR.xlsx")
+    except FileNotFoundError:
+        error_logger.append_error("Файл DOR не найден. Убедитесь что файл DOR.xlsx находится в директории")
+        exit()
 
     # Список всех файлов в директории
     if today == datetime.date.today():
-        reports = [(name, path) for name, path in reports_name_and_path(exclude_folder="_old")]
+        reports = [(name, path) for name, path in reports_name_and_path("_old")]
     else:
         reports = [(name, path) for name, path in reports_name_and_path()]
 
@@ -42,7 +49,7 @@ def main():
             # открываем страницу AA, находим столбец текущего дня
             dor_sheet, cur_day_column_index = get_dor_sheet_and_day_column(dor, "AA", yesterday)
 
-            # находим файл с отчётами по АА сервис
+            # находим файл с отчётами по АА
             aa_reports = find_report(reports, "AA_", today)
 
             # открываем отчёт AA
@@ -62,6 +69,7 @@ def main():
             dor_sheet.cell(column=cur_day_column_index, row=9).value = aa_statistic["answered<sl"]
             dor_sheet.cell(column=cur_day_column_index, row=10).value = aa_statistic["abandoned"]
     except:
+        print("Не удалось заполнить АА")
         errors += 1
         logging.debug("\n==========================================")
         logging.exception("\nError occurred on %s \n" % datetime.datetime.today())
@@ -91,6 +99,7 @@ def main():
         dor_sheet.cell(column=cur_day_column_index, row=17).value = aa_sc_statistic["answered<sl"]
         dor_sheet.cell(column=cur_day_column_index, row=18).value = aa_sc_statistic["abandoned"]
     except:
+        error_logger.append_error("Не удалось заполнить вкладку АА")
         errors += 1
         logging.debug("\n==========================================")
         logging.exception("\nError occurred on %s \n" % datetime.datetime.today())
@@ -122,7 +131,7 @@ def main():
             bsc_status_report_wb = openpyxl.load_workbook(bsc_status_reports)
             bsc_status_report_sheet = bsc_status_report_wb.active
 
-            status_time = get_status_total(bsc_status_report_sheet)
+            status_time = get_columns_total(bsc_status_report_sheet)
 
             # Заполняем DOR BSC
 
@@ -142,6 +151,7 @@ def main():
             )
 
     except:
+        error_logger.append_error("Не удалось заполнить вкладку BSC")
         errors += 1
         logging.debug("\n==========================================")
         logging.exception("\nError occurred on %s \n" % datetime.datetime.today())
@@ -175,6 +185,7 @@ def main():
             dor_sheet.cell(column=cur_day_column_index, row=9).value = buderus_statistic["answered<sl"]
             dor_sheet.cell(column=cur_day_column_index, row=10).value = buderus_statistic["abandoned"]
     except:
+        error_logger.append_error("Не удалось заполнить вкладку Buderus")
         errors += 1
         logging.debug("\n==========================================")
         logging.exception("\nError occurred on %s \n" % datetime.datetime.today())
@@ -208,6 +219,7 @@ def main():
             dor_sheet.cell(column=cur_day_column_index, row=9).value = buderus_sales_statistic["answered<sl"]
             dor_sheet.cell(column=cur_day_column_index, row=10).value = buderus_sales_statistic["abandoned"]
     except:
+        error_logger.append_error("Не удалось заполнить вкладку Buderus Sales")
         errors += 1
         logging.debug("\n==========================================")
         logging.exception("\nError occurred on %s \n" % datetime.datetime.today())
@@ -219,31 +231,43 @@ def main():
         # открываем страницу K2W, находим столбец текущего дня
         dor_sheet, cur_day_column_index = get_dor_sheet_and_day_column(dor, "K2W", yesterday)
 
-        # находим файл с отчётами по АА сервис
-        k2w_calls_reports = find_report(reports, "K2W-calls_", today)
+        # находим файл с отчётами по K2W
+        k2w_inbound_reports = find_report(reports, "K2W-calls_", today)
+        k2w_outbound_reports = find_report(reports, "K2W-outbound-calls", today)
 
-        # открываем отчёт K2W
-        k2w_calls = openpyxl.load_workbook(k2w_calls_reports)
-        k2w_calls_sheet = k2w_calls.active
-        k2w_calls_statistic = {"entered": k2w_calls_sheet['C6'].value,
-                               "answered": k2w_calls_sheet['D6'].value,
-                               "answered<sl": k2w_calls_sheet['E6'].value,
-                               "abandoned": k2w_calls_sheet['H6'].value,
-                               "abandoned<5": k2w_calls_sheet['I6'].value,
-                               "abandoned>5": k2w_calls_sheet['J6'].value,
-                               "AHT": k2w_calls_sheet['M6'].value
-                               }
+        # открываем входящие звонки K2W
+        k2w_outbound_calls = openpyxl.load_workbook(k2w_inbound_reports)
+        k2w_inbound_calls_sheet = k2w_outbound_calls.active
+        k2w_inbound_calls_statistic = {"entered": k2w_inbound_calls_sheet['C6'].value,
+                                       "answered": k2w_inbound_calls_sheet['D6'].value,
+                                       "answered<sl": k2w_inbound_calls_sheet['E6'].value,
+                                       "abandoned": k2w_inbound_calls_sheet['H6'].value,
+                                       "abandoned<5": k2w_inbound_calls_sheet['I6'].value,
+                                       "abandoned>5": k2w_inbound_calls_sheet['J6'].value,
+                                       "AHT": k2w_inbound_calls_sheet['M6'].value
+                                       }
+
+        # открываем исходящие звонки K2W
+        k2w_outbound_calls = openpyxl.load_workbook(k2w_outbound_reports)
+        k2w_outbound_calls_sheet = k2w_outbound_calls.active
+        k2w_outbound_calls_statistic = {"outbound-calls": k2w_outbound_calls_sheet['D7'].value,
+                                        "AHT": k2w_outbound_calls_sheet['E7'].value,
+                                        }
 
         # Заполняем DOR K2W
-        dor_sheet.cell(column=cur_day_column_index, row=5).value = get_sec(k2w_calls_statistic["AHT"])
-        dor_sheet.cell(column=cur_day_column_index, row=7).value = k2w_calls_statistic["entered"]
-        dor_sheet.cell(column=cur_day_column_index, row=8).value = k2w_calls_statistic["answered"]
-        dor_sheet.cell(column=cur_day_column_index, row=9).value = k2w_calls_statistic["answered<sl"]
-        dor_sheet.cell(column=cur_day_column_index, row=10).value = k2w_calls_statistic["abandoned"]
-        dor_sheet.cell(column=cur_day_column_index, row=11).value = k2w_calls_statistic["abandoned<5"]
-        dor_sheet.cell(column=cur_day_column_index, row=12).value = k2w_calls_statistic["abandoned>5"]
+        dor_sheet.cell(column=cur_day_column_index, row=5).value = get_sec(k2w_inbound_calls_statistic["AHT"])
+        dor_sheet.cell(column=cur_day_column_index, row=7).value = k2w_inbound_calls_statistic["entered"]
+        dor_sheet.cell(column=cur_day_column_index, row=8).value = k2w_inbound_calls_statistic["answered"]
+        dor_sheet.cell(column=cur_day_column_index, row=9).value = k2w_inbound_calls_statistic["answered<sl"]
+        dor_sheet.cell(column=cur_day_column_index, row=10).value = k2w_inbound_calls_statistic["abandoned"]
+        dor_sheet.cell(column=cur_day_column_index, row=11).value = k2w_inbound_calls_statistic["abandoned<5"]
+        dor_sheet.cell(column=cur_day_column_index, row=12).value = k2w_inbound_calls_statistic["abandoned>5"]
+
+        dor_sheet.cell(column=cur_day_column_index, row=14).value = k2w_outbound_calls_statistic["outbound-calls"]
+        dor_sheet.cell(column=cur_day_column_index, row=15).value = get_sec(k2w_outbound_calls_statistic["AHT"])
 
     except:
+        error_logger.append_error("Не удалось заполнить вкладку K2W")
         errors += 1
         logging.debug("\n==========================================")
         logging.exception("\nError occurred on %s \n" % datetime.datetime.today())
@@ -263,6 +287,7 @@ def main():
 
         # находим файл с отчётами
         michelin_calls_reports = find_report(reports, "Michelin-Calls_", today)
+        michelin_status_reports = find_report(reports, "Michelin-Status_", today)
         michelin_votes_reports = find_report(reports, "Michelin-Votes_", today)
 
         # открываем отчёт Michelin-calls и собираем статистику
@@ -275,6 +300,11 @@ def main():
                                     "abandoned<5": michelin_calls_report_sheet['I6'].value,
                                     "AHT": get_sec(michelin_calls_report_sheet['M6'].value),
                                     }
+
+        michelin_status_report_wb = openpyxl.load_workbook(michelin_status_reports)
+        michelin_status_report_sheet = michelin_status_report_wb.active
+
+        status_time = get_columns_total(michelin_status_report_sheet)
 
         # открываем отчёт Michelin-votes и собираем статистику
         michelin_votes_report_wb = openpyxl.load_workbook(michelin_votes_reports)
@@ -297,7 +327,17 @@ def main():
         michelin_dor_sheet.cell(column=cur_day_column_index, row=12).value = michelin_votes_statistic["vote1"] + \
                                                                              michelin_votes_statistic["vote2"]
         michelin_dor_sheet.cell(column=cur_day_column_index, row=13).value = sum(michelin_votes_statistic.values())
+
+        michelin_dor_sheet.cell(column=cur_day_column_index, row=15).value = calc_occupancy(
+            status_time["Available"],
+            status_time["On Call"],
+            status_time["After Call Work (auto)"],
+            status_time["After Call Work (status)"],
+            status_time["Mail Flex"],
+            status_time["Back Office Work"]
+        )
     except:
+        error_logger.append_error("Не удалось заполнить вкладку Michelin")
         errors += 1
         logging.debug("\n==========================================")
         logging.exception("\nError occurred on %s \n" % datetime.datetime.today())
@@ -340,7 +380,7 @@ def main():
         invitro_status_report_wb = openpyxl.load_workbook(invitro_status_reports)
         invitro_status_report_sheet = invitro_status_report_wb.active
 
-        status_time = get_status_total(invitro_status_report_sheet)
+        status_time = get_columns_total(invitro_status_report_sheet)
 
         # Заполняем DOR Invitro
 
@@ -364,6 +404,7 @@ def main():
         )
 
     except:
+        error_logger.append_error("Не удалось заполнить вкладку Invitro")
         errors += 1
         logging.debug("\n==========================================")
         logging.exception("\nError occurred on %s \n" % datetime.datetime.today())
@@ -406,6 +447,7 @@ def main():
         dor_sheet.cell(column=cur_day_column_index, row=14).value = invitro_epxert_calls_statistic[
             "abandoned<5"]
     except:
+        error_logger.append_error("Не удалось заполнить вкладку Invitro Expert")
         errors += 1
         logging.debug("\n==========================================")
         logging.exception("\nError occurred on %s \n" % datetime.datetime.today())
@@ -435,13 +477,13 @@ def main():
         kaspersky_b2c_combined_status_report_wb = openpyxl.load_workbook(kaspersky_b2c_combined_status_reports)
         kaspersky_b2c_combined_status_report_sheet = kaspersky_b2c_combined_status_report_wb.active
 
-        status_time_combined = get_status_total(kaspersky_b2c_combined_status_report_sheet)
+        status_time_combined = get_columns_total(kaspersky_b2c_combined_status_report_sheet)
 
         # открываем отчёт Kaspersky-B2C-combined-status и собираем статистику
         kaspersky_b2c_agents_status_report_wb = openpyxl.load_workbook(kaspersky_b2c_agents_status_reports)
         kaspersky_b2c_agents_status_report_sheet = kaspersky_b2c_agents_status_report_wb.active
 
-        status_time_b2c = get_status_total(kaspersky_b2c_agents_status_report_sheet)
+        status_time_b2c = get_columns_total(kaspersky_b2c_agents_status_report_sheet)
 
         # Заполняем DOR Kaspersky-B2C
 
@@ -472,6 +514,7 @@ def main():
         (On call + after call + after call ручной + admin work + no ACD + available)
         """
     except:
+        error_logger.append_error("Не удалось заполнить вкладку Kaspersky B2C")
         errors += 1
         logging.debug("\n==========================================")
         logging.exception("\nError occurred on %s \n" % datetime.datetime.today())
@@ -500,6 +543,7 @@ def main():
 
             dor_sheet.cell(column=cur_day_column_index, row=5).value = kaspersky_b2b_calls_statistic["AHT"]
     except:
+        error_logger.append_error("Не удалось заполнить вкладку Kaspersky B2B")
         errors += 1
         logging.debug("\n==========================================")
         logging.exception("\nError occurred on %s \n" % datetime.datetime.today())
@@ -528,6 +572,7 @@ def main():
 
         dor_sheet.cell(column=cur_day_column_index, row=6).value = kaspersky_mea_calls_statistic["AHT"]
     except:
+        error_logger.append_error("Не удалось заполнить вкладку Kaspersky MEA")
         errors += 1
         logging.debug("\n==========================================")
         logging.exception("\nError occurred on %s \n" % datetime.datetime.today())
@@ -536,15 +581,16 @@ def main():
 
     try:
         dor.save("DOR.xlsx")
-        dor.save("DOR_test.xlsx")
+        dor.save("DOR_backup.xlsx")
     except PermissionError:
         errors += 1
         f_name = "DOR_copy_{:%d-%m-%y}.xlsx".format(today)
         logging.debug("\n==========================================")
         logging.exception("\nPermission denied. Saved as %s \n" % f_name)
         dor.save(f_name)
+        error_logger.append_error("Не удалось перезаписать файл DOR, отчёт был сохранён как %s" % f_name)
     finally:
-        print("%s - Done! With %i errors" % (datetime.datetime.today(), errors))
+        error_logger.save()
 
 
 if __name__ == '__main__':
